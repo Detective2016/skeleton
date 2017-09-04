@@ -2,6 +2,7 @@ package api;
 
 
 import io.dropwizard.jersey.validation.Validators;
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.validation.Validator;
@@ -45,7 +46,7 @@ public class CreateReceiptRequestTest {
     @Test
     public void testInvalidInput() {
         CreateReceiptRequest receipt = new CreateReceiptRequest();
-        receipt.merchant = null;
+        receipt.merchant = "M";
         receipt.amount = null;
 
         validator.validate(receipt);
