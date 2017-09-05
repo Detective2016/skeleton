@@ -34,4 +34,14 @@ public class ReceiptDao {
     public List<ReceiptsRecord> getAllReceipts() {
         return dsl.selectFrom(RECEIPTS).fetch();
     }
+
+    public List<ReceiptsRecord> getAllReceiptsById(List<Integer> idLst) {
+        return dsl.selectFrom(RECEIPTS).where(RECEIPTS.ID.in(idLst)).fetch();
+    }
+
+    public ReceiptsRecord getReceiptById(int id) {
+        return dsl.selectFrom(RECEIPTS).where(RECEIPTS.ID.eq(id)).fetchAny();
+    }
+
+
 }
