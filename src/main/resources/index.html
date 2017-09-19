@@ -55,23 +55,8 @@
     </style>
     <script>
      const API = "";
-     function get_tags(receipt_id) {
-         alert("in get tags")
-         $.getJSON(API + "/receipts/" + receipt_id, function(tags) {
-             e = ''
-             for(i=0; i < tags.length; i++) {
-                 e += '<div class="tagPill">';
-                 e += '<span class="tagValue" onclick="del_tag(\''+tags[i]+'\', '+receipt_id+')">' + tags[i] + '</span></div>';
-             }
-             e += '<div class="tagPill add-tag" onclick="add_tag_toggle(this)" ';
-             e += 'id="'+receipt_id+'">Add Tag</div>';
-             sel = '#receipt_'+receipt_id+' > .tags';
-             $(sel).html("");
-             $(e).appendTo($(sel));
-         });
-     }
      function addTag(receiptId){
-        $(`<input id = "tag-input-${receiptId}", class = "tag_input", onkeyup = "saveTag(event, ${receiptId})", placeholder = "tag name?"/>`)
+        $(`<input id = "tag-input-${receiptId}", class = "tag_input", onkeyup = "saveTag(event, ${receiptId})", placeholder = "tagName"/>`)
                 .appendTo(document.getElementById(receiptId));
      }
      function saveTag(event, receiptId){
@@ -114,22 +99,23 @@
             })
         }
      $(function(){
-          $.getJSON(API + "/receipts", function(receipts){
-                for(var i = receipts.length-1 ; i >= 0; i--) {
+          $.getJSON(API+"/receipts", function(receipts){
+                for(var i = 0 ; i < receipts.length; i++) {
                     var receipt = receipts[i];
                     var tags = "";
                     for (var tag in receipt.tags){
-                        var thistag = receipt.tags[tag];
-                        tags += `<button class = "tagValue", id= "${thistag},${receipt.id}", onclick = "toggle(\'${thistag}\', ${receipt.id})">${thistag}</button>`
+                        var currTag = receipt.tags[tag];
+                        tags += `<button class = "tagValue", id= "${currTag},${receipt.id}", onclick = "toggle(\'${currTag}\', ${receipt.id})">${currTag}</button>`;
                     }
-                    $(`<div class ="merchant">${receipt.merchantName}</div>
+
+                    $(`<div id = "${receipt.id}", class = "receipt">
+                        <div class ="merchant">${receipt.merchantName}</div>
                         <div class ="amount">${receipt.value}</div>
                         <div id = "tags-${receipt.id}",class = "tags">
                         <button class = "add-tag", onclick="addTag(${receipt.id})"> + </button>
                         ${tags}
-                        </div></div>`)
-                        .appendTo($("#receiptList"));
-                }
+                        </div></div>`).appendTo($("#receiptList"));}
+
             })
 
          $('#add-receipt, #cancel-receipt').on('click', function() {
@@ -164,8 +150,7 @@
               <div class ="amount">${amount}</div>
               <div id = "tags-${response}", class = "tags">
                 <button class = "add-tag", onclick="addTag(${response})"> + </button>
-                </div>
-            </div>`).prependTo($("#receiptList"));
+                </div></div>`).prependTo($("#receiptList"));
                 }
             })
          }
