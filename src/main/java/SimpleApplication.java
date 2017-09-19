@@ -1,4 +1,4 @@
-import controllers.HelloWorldController;
+import controllers.StaticHtmlController;
 import controllers.ReceiptController;
 import dao.ReceiptDao;
 import dao.TaggedReceiptDao;
@@ -42,7 +42,7 @@ public class SimpleApplication extends Application<Configuration> {
 
         // Register all Controllers below.  Don't forget 
         // you need class and method @Path annotations!
-        env.jersey().register(new HelloWorldController());
+        env.jersey().register(new StaticHtmlController());
         env.jersey().register(new ReceiptController(receiptDao, taggedReceiptDao));
         enableSessionSupport(env);
     }

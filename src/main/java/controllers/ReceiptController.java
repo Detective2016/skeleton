@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -37,7 +38,13 @@ public class ReceiptController {
     @Path("/receipts")
     public List<ReceiptResponse> getReceipts() {
         List<ReceiptsRecord> receiptRecords = receipts.getAllReceipts();
-        return receiptRecords.stream().map(ReceiptResponse::new).collect(toList());
+        List<ReceiptResponse> receiptResponses = new ArrayList<>();
+        for (ReceiptsRecord record: receiptRecords) {
+            List<TagsRecord> tagsRecords = receipts.getTags(record.getId());
+            ReceiptResponse receipt = new ReceiptResponse(record, tagsRecords);
+            receiptResponses.add(receipt);
+        }
+        return receiptResponses;
     }
 
     @PUT
@@ -52,10 +59,25 @@ public class ReceiptController {
     @GET
     @Path("/tags/{tag}")
     public List<ReceiptResponse> getAllByTag(@PathParam("tag") String tag) {
-        List<TagsRecord> records = taggedReceipts.getTaggedList(tag);
-        List<Integer> ids = records.stream().map(TagsRecord::getIdMapped).collect(toList());
-        List<ReceiptsRecord> receiptRecords = receipts.getAllReceiptsById(ids);
-        return receiptRecords.stream().map(ReceiptResponse::new).collect(toList());
+        List<ReceiptsRecord> tagRecords = taggedReceipts.getTaggedList(tag);
+        List<ReceiptResponse> receiptResponses = new ArrayList<>();
+        for (ReceiptsRecord record: tagRecords) {
+            List<TagsRecord> tagsRecordList = taggedReceipts.getTags(record.getId());
+            ReceiptResponse receipt = new ReceiptResponse(record, tagsRecordList);
+            receiptResponses.add(receipt);
+        }
+        return receiptResponses;
+    }
+
+    @GET
+    @Path("/receipts/{id}")
+    public List<String> getAllById(@PathParam("id") int id) {
+        List<TagsRecord> records = taggedReceipts.getTaggedListById(id);
+        List<String> tags = new ArrayList<String>();
+        for (TagsRecord record: records) {
+            tags.add(record.getTag());
+        }
+        return tags;
     }
 
     @GET
