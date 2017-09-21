@@ -51,6 +51,7 @@ public class ReceiptController {
     @Path("/tags/{tag}")
     public void toggleTag(@PathParam("tag") String tag, int id) {
         ReceiptsRecord receiptsRecord = receipts.getReceiptById(id);
+        System.out.println("tag: "+tag+ " id: "+id);
         if (receiptsRecord != null) {
             taggedReceipts.toggle(tag, id);
         }

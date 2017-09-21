@@ -42,16 +42,6 @@
             margin-bottom: 5px;
         }
         .receipt > SPAN {  display: inline-block; padding-right: 30px;}
-        .tagPill {
-            min-width: 30px;
-            border-radius: 15px;
-            background: #c88;
-            display: inline-block;
-            padding: 2px 5px 2px 5px;
-            margin: 0 2px 0 2px;
-            cursor: pointer;
-            text-align: center;
-        }
     </style>
     <script>
      const API = "";
@@ -61,61 +51,55 @@
      }
      function saveTag(event, receiptId){
             event.which = event.which || event.keyCode;
-            if (event.which!=13){
-                return;
-            }
+            if (event.which == 13) {
             $.ajaxSetup({
                 contentType: "application/json; charset=utf-8"
             });
-            var tag = document.getElementById("tag-input-"+receiptId);
+            var tag = document.getElementById("tag-input-" + receiptId);
             var tag_value = tag.value;
             $.ajax({
                 url: API + '/tags/' + tag_value,
                 type: 'PUT',
-                data: JSON.stringify(receiptId),
                 headers: {
                     "Content-Type": "application/json"
                 },
+                data: JSON.stringify(receiptId),
                 success: function(response){
                     $(`<button id = "${tag_value},${receiptId}", class = "tagValue", onClick = "toggle(\'${tag_value}\', ${receiptId})">${tag_value}</button>`)
                         .appendTo(document.getElementById("tags-" + receiptId));
                     tag.remove();
                 }
             })
+            }
         }
-        function toggle(tag, receiptId){
+      function toggle(tag, receiptId){
             $.ajax({
                 url: API + '/tags/' + tag,
                 type: 'PUT',
-                data: JSON.stringify(receiptId),
                 headers: {
                     "Content-Type": "application/json"
                 },
+                data: JSON.stringify(receiptId),
                 success: function(response){
                     var tagID = tag + "," + receiptId
                     var receipt = document.getElementById(tagID);
                     receipt.remove();
                 }
             })
-        }
+      }
      $(function(){
           $.getJSON(API+"/receipts", function(receipts){
                 for(var i = 0 ; i < receipts.length; i++) {
-                    var receipt = receipts[i];
                     var tags = "";
+                    var receipt = receipts[i];
                     for (var tag in receipt.tags){
                         var currTag = receipt.tags[tag];
                         tags += `<button class = "tagValue", id= "${currTag},${receipt.id}", onclick = "toggle(\'${currTag}\', ${receipt.id})">${currTag}</button>`;
                     }
-
-                    $(`<div id = "${receipt.id}", class = "receipt">
-                        <div class ="merchant">${receipt.merchantName}</div>
-                        <div class ="amount">${receipt.value}</div>
-                        <div id = "tags-${receipt.id}",class = "tags">
-                        <button class = "add-tag", onclick="addTag(${receipt.id})"> + </button>
-                        ${tags}
+                    $(`<div id = "${receipt.id}", class = "receipt"><div class ="merchant">${receipt.merchantName}</div>
+                        <div class ="amount">${receipt.value}</div><div id = "tags-${receipt.id}",class = "tags">
+                        <button class = "add-tag", onclick="addTag(${receipt.id})"> + </button>${tags}
                         </div></div>`).appendTo($("#receiptList"));}
-
             })
 
          $('#add-receipt, #cancel-receipt').on('click', function() {
@@ -140,29 +124,18 @@
             $.ajax({
                 url: API + '/receipts/',
                 type: 'POST',
-                data: data,
                 headers: {
                     "Content-Type": "application/json"
                 },
+                data: data,
                 success: function(response){
-                    $(`<div id = ${response} class="receipt">
-              <div class ="merchant">${merchant}</div>
-              <div class ="amount">${amount}</div>
-              <div id = "tags-${response}", class = "tags">
-                <button class = "add-tag", onclick="addTag(${response})"> + </button>
-                </div></div>`).prependTo($("#receiptList"));
+                    $(`<div id = ${response} class="receipt"><div class ="merchant">${merchant}</div>
+                      <div class ="amount">${amount}</div><div id = "tags-${response}", class = "tags">
+                      <button class = "add-tag", onclick="addTag(${response})"> + </button>
+                      </div></div>`).appendTo($("#receiptList"));
                 }
             })
          }
-
-         $('#save-receipt.input').keypress(function (e) {
-             if (e.which == 13) {
-                 save_receipt()
-             } else if (e.which == 27) {
-                 refreshNewReceipt();
-             }
-             return false;
-         });
      });
 
     </script>

@@ -23,15 +23,16 @@ public class TaggedReceiptDao {
     }
 
     public void toggle(String tag, int receiptId) {
-        TagsRecord taggedRecord = dsl.selectFrom(TAGS).where(TAGS.ID_MAPPED.eq(receiptId)).and(TAGS.TAG.eq(tag)).fetchOne();
+        System.out.println("in toggle: " + tag + " " + receiptId);
+        TagsRecord taggedRecord = dsl.selectFrom(TAGS).where(TAGS.TAG.eq(tag)).and(TAGS.ID_MAPPED.eq(receiptId)).fetchOne();
 
-        if (taggedRecord != null && taggedRecord.getId() != null) {
-            taggedRecord.delete();
+
+        if (taggedRecord==null){
+            dsl.insertInto(TAGS, TAGS.ID_MAPPED, TAGS.TAG).values(receiptId, tag).execute();
         } else {
-            taggedRecord = dsl.insertInto(TAGS, TAGS.ID_MAPPED, TAGS.TAG).values(receiptId, tag).returning(TAGS.ID).fetchOne();
+            dsl.deleteFrom(TAGS).where(TAGS.TAG.eq(tag)).and(TAGS.ID_MAPPED.eq(receiptId)).execute();
         }
 
-        checkState(taggedRecord != null && taggedRecord.getId() != null, "Insert failed");
     }
 
     public List<ReceiptsRecord> getTaggedList(String tag) {

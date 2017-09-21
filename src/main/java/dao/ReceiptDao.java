@@ -46,7 +46,7 @@ public class ReceiptDao {
     }
 
     public List<TagsRecord> getTags(int receiptId) {
-        return dsl.selectFrom(TAGS).where(TAGS.ID.eq(receiptId)).fetch();
+        return dsl.selectFrom(TAGS).where(TAGS.ID_MAPPED.eq(receiptId)).fetch();
     }
 
 }
