@@ -21,6 +21,22 @@
             display: table;
             clear: both;
         }
+        #capture-receipt {
+            display: none;
+            clear: both;
+            margin: 0 0 0 0;
+            background-color: #20A;
+            height: 120px;
+        }
+        #capture-receipt:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        body {text-align: center;}
+        video { width: 400px; height: 300px; border: 1px solid black; }
+        #vidwrap {margin: 20px 0;}
+        #snapshot {height:3em;}
         H1 {float: left;}
         .button{
             margin-left: 10px;
@@ -37,14 +53,12 @@
             border: 1px solid green;
             clear: both;
         }
-        .receipt {
-            background-color: #eee;
-            margin-bottom: 5px;
-        }
         .receipt > SPAN {  display: inline-block; padding-right: 30px;}
     </style>
     <script>
      const API = "";
+     var localMedia;
+
      function addTag(receiptId){
         $(`<input id = "tag-input-${receiptId}", class = "tag_input", onkeyup = "saveTag(event, ${receiptId})", placeholder = "tagName"/>`)
                 .appendTo(document.getElementById(receiptId));
@@ -87,7 +101,67 @@
                 }
             })
       }
+      var imageCapture;
+
+      function attachMediaStream(mediaStream) {
+        localMedia = mediaStream;
+        $('video')[0].srcObject = mediaStream;
+        const track = mediaStream.getVideoTracks()[0];
+        imageCapture = new ImageCapture(track);
+      }
+
+      function startVideo() {
+        $('#capture-receipt').toggle();
+        navigator.mediaDevices.getUserMedia({video: {facingMode: { exact: "environment" }}})
+        .then(attachMediaStream)
+        .catch(error => {
+          navigator.mediaDevices.getUserMedia({video: true})
+          .then(attachMediaStream)
+          .catch(error => {
+            console.log('you are fooked');
+          })
+        });
+      }
+
+      function stopVideo(){
+            localMedia.getVideoTracks()[0].stop();
+            $('#capture-receipt').toggle();
+      }
+
+      function takeSnapshot() {
+            imageCapture.grabFrame()
+            .then(img => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                canvas.getContext('2d').drawImage(img, 0, 0);
+                const base64EncodedImageData = canvas.toDataURL('image/png').split(',')[1];
+                $.ajax({
+                    url: "/images",
+                    type: "POST",
+                    data: base64EncodedImageData,
+                    contentType: "text/plain",
+                    success: function() {},
+               })
+                .then(response => {
+                    $('video').after(`<div>got response: <pre>${JSON.stringify(response)}</pre></div>`);
+                    $("#new-receipt").show();
+                    $("#merchant").val(response.merchantName);
+                    $("#amount").val(response.amount);
+                    console.log(response.merchantName);
+                    console.log(response.amount);
+                    stopVideo();
+                })
+                .always(() => console.log('request complete'));
+            });
+        }
+
      $(function(){
+          $('#start-camera').on('click', startVideo);
+          $('#take-pic').on('click', takeSnapshot);
+          $('video').on('play', () => $('#snapshot').prop('disabled', false));
+          $('#snapshot').on('click', takeSnapshot);
+          $('#take-pic-cancel').on('click', stopVideo);
           $.getJSON(API+"/receipts", function(receipts){
                 for(var i = 0 ; i < receipts.length; i++) {
                     var tags = "";
@@ -137,7 +211,6 @@
             })
          }
      });
-
     </script>
 </head>
 
@@ -145,12 +218,21 @@
 <DIV id="container">
     <h1>My Receipts</h1>
     <div class="button" id="add-receipt">+</div>
+    <div class="button" id="start-camera">&#128247;</div>
     <div id="new-receipt">
         <INPUT id="merchant" name="merchantName" placeholder="merchant" style="height:30px;margin-right:10px">
         <INPUT id="amount" name="amount" placeholder="amount" style="height:30px;margin-right:10px">
         <hr>
         <span class="button" style="height:20px;margin-right:10px;font-size:20px" id="save-receipt">Save</span>
         <span class="button" style="height:20px;margin-right:10px;font-size:20px" id="cancel-receipt">Cancel</span>
+    </div>
+    <div id="capture-receipt">
+        <div id="vidwrap">
+            <video autoplay></video>
+        </div>
+        <hr>
+        <span class="button" style="height:20px;margin-right:10px;font-size:20px" id="take-pic">Snap</span>
+        <span class="button" style="height:20px;margin-right:10px;font-size:20px" id="take-pic-cancel">Cancel</span>
     </div>
     <div id="receiptList">
     </div>
